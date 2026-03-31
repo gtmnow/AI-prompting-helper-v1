@@ -6,7 +6,7 @@ import { llmConfigs, orderedLlms, type LlmId } from './config/llms';
 import { orderedProfiles, profileConfigs, type ProfileId } from './config/profiles';
 import { buildAlignedPrompt } from './utils/buildAlignedPrompt';
 import { getProfileFromUrl } from './utils/getProfileFromUrl';
-import logo from '/hermanscience-logo.png';
+import logo from './assets/hermanscience-logo.png';
 
 function App() {
   const urlProfile = getProfileFromUrl();
