@@ -60,7 +60,7 @@ function App() {
     <main className="app-shell">
       <section className="hero">
         <img
-          src="/hermanscience-logo.png"
+          src="hermanscience-logo.png"
           alt="Herman Science"
           className="brand-logo"
         />
