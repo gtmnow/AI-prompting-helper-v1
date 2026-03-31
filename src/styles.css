@@ -165,6 +165,29 @@ button {
   transition: background 0.2s ease, transform 0.2s ease;
 }
 
+.profile-cta-card {
+  margin-bottom: 12px;
+  background: #f5f9ff;
+  border: 1px solid #cfe0f5;
+}
+
+.profile-cta-text {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #17324d;
+}
+
+.profile-cta-text a {
+  color: #2f6fed;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.profile-cta-text a:hover {
+  text-decoration: underline;
+}
+
 button:hover {
   background: var(--brand-blue-hover);
 }

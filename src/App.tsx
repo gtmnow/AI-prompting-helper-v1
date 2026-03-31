@@ -70,22 +70,37 @@ function App() {
       </section>
 
       {!urlProfile && (
-        <div className="card profile-selector-card">
-          <div className="field-group">
-            <label htmlFor="profileSelect">Select a profile</label>
-            <select
-              id="profileSelect"
-              value={selectedProfile}
-              onChange={(e) => setSelectedProfile(e.target.value as ProfileId)}
-            >
-              {orderedProfiles.map((profile) => (
-                <option key={profile.id} value={profile.id}>
-                  {profile.label} ({profile.id})
-                </option>
-              ))}
-            </select>
+        <>
+          <div className="card profile-cta-card">
+            <p className="profile-cta-text">
+              Don&apos;t know your profile?{' '}
+              <a
+                href="https://www.hermanscience.com/cqi"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Get your personal profile assessment →
+              </a>
+            </p>
           </div>
-        </div>
+
+          <div className="card profile-selector-card">
+            <div className="field-group">
+              <label htmlFor="profileSelect">Select a profile</label>
+              <select
+                id="profileSelect"
+                value={selectedProfile}
+                onChange={(e) => setSelectedProfile(e.target.value as ProfileId)}
+              >
+                {orderedProfiles.map((profile) => (
+                  <option key={profile.id} value={profile.id}>
+                    {profile.label} ({profile.id})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </>
       )}
 
       <StatusStrip profile={activeProfile} llm={activeLlm} />
