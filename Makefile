@@ -17,3 +17,8 @@ preview:
 # Clean node modules (optional)
 clean:
 	rm -rf node_modules dist
+
+deploy:
+	npm run build
+	npm run deploy
+	
