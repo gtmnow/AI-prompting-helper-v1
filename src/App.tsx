@@ -6,6 +6,7 @@ import { llmConfigs, orderedLlms, type LlmId } from './config/llms';
 import { orderedProfiles, profileConfigs, type ProfileId } from './config/profiles';
 import { buildAlignedPrompt } from './utils/buildAlignedPrompt';
 import { getProfileFromUrl } from './utils/getProfileFromUrl';
+import logo from '/hermanscience-logo.png';
 
 function App() {
   const urlProfile = getProfileFromUrl();
@@ -59,59 +60,43 @@ function App() {
   return (
     <main className="app-shell">
       <section className="hero">
-        <img
-          src="./hermanscience-logo.png"
-          alt="Herman Science"
-          className="brand-logo"
-        />
+          <img
+            src={logo}
+            alt="Herman Science"
+            className="brand-logo"
+          />
         <p className="subtitle">
           Turn your question into an AI-aligned prompt based on your profile and the target model.
         </p>
       </section>
 
       {!urlProfile && (
-        <>
-          <div className="card profile-cta-card">
-            <p className="profile-cta-text">
-              Don&apos;t know your profile?{' '}
-              <a
-                href="https://www.hermanscience.com/cqi"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Get your personal profile assessment →
-              </a>
-            </p>
-          </div>
-
-          <div className="card profile-selector-card">
-            <div className="field-group">
-              <label htmlFor="profileSelect">Select a profile</label>
-              <select
-                id="profileSelect"
-                value={selectedProfile}
-                onChange={(e) => setSelectedProfile(e.target.value as ProfileId)}
-              >
-                {orderedProfiles.map((profile) => (
-                  <option key={profile.id} value={profile.id}>
-                    {profile.label} ({profile.id})
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </>
+        <div className="card profile-cta-card">
+          <p className="profile-cta-text">
+            Don&apos;t know your profile?{' '}
+            <a
+              href="https://www.hermanscience.com/cqi"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Get your personal profile assessment →
+            </a>
+          </p>
+        </div>
       )}
 
       <StatusStrip profile={activeProfile} llm={activeLlm} />
 
       <div className="grid-layout">
         <PromptInput
+          profiles={orderedProfiles}
+          selectedProfileId={selectedProfile}
           profile={activeProfile}
           llms={orderedLlms}
           selectedLlmId={selectedLlm}
           question={question}
           error={error}
+          onProfileChange={(value) => setSelectedProfile(value as ProfileId)}
           onLlmChange={(value) => setSelectedLlm(value as LlmId)}
           onQuestionChange={setQuestion}
           onGenerate={handleGenerate}
