@@ -3,5 +3,5 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/ai-prompting-helper-v1/', // 👈 IMPORTANT
+  base: '/AI-prompting-helper-v1/', // 👈 IMPORTANT
 })
