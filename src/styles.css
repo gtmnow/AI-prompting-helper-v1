@@ -53,10 +53,10 @@ select {
 
 .brand-logo {
   display: block;
-  width: 100%;
-  max-width: calc(680px * var(--ui-scale));
+  width: auto;
   height: auto;
-  margin-bottom: calc(12px * var(--ui-scale));
+  max-width: 200px;   /* ~25% of current size */
+  margin-bottom: 8px;
 }
 
 .subtitle {
