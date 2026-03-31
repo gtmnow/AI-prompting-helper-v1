@@ -1,208 +1,193 @@
 import { ProfileConfig } from '../config/profiles';
 import { LlmConfig } from '../config/llms';
+import { detectTaskType, TaskType } from './detectTaskType';
 
-type TaskType =
-  | 'writing'
-  | 'analysis'
-  | 'brainstorming'
-  | 'planning'
-  | 'explanation'
-  | 'general';
+function getProfileAlignedTask(
+  rawInput: string,
+  profileId: string,
+  taskType: TaskType
+): string {
+  const cleaned = rawInput.trim();
 
-function detectTaskType(input: string): TaskType {
-  const text = input.toLowerCase();
+  const map: Record<string, Partial<Record<TaskType | 'default', string>>> = {
+    '1': {
+      default: `${cleaned}. Make the response precise, well-structured, and logically organized.`,
+      analysis: `Analyze the following in a precise, well-structured way. Use clear logic and explicit reasoning: ${cleaned}`,
+      planning: `Create a structured plan for the following, with clear priorities and ordered steps: ${cleaned}`,
+      writing: `Write the following clearly and accurately, with strong structure and careful wording: ${cleaned}`,
+    },
+    '2': {
+      default: `${cleaned}. Make the response helpful, considerate, and practical for the people involved.`,
+      writing: `Write the following in a warm, clear, and effective way for the intended audience: ${cleaned}`,
+      explanation: `Explain the following in a supportive, accessible, and easy-to-understand way: ${cleaned}`,
+    },
+    '3': {
+      default: `${cleaned}. Focus on the strongest result and the most useful outcome.`,
+      planning: `Create a focused action plan for the following, starting with the highest-impact steps: ${cleaned}`,
+      writing: `Write the strongest final version of the following, keeping it sharp, effective, and ready to use: ${cleaned}`,
+      analysis: `Analyze the following and lead with the strongest conclusion and the most practical next steps: ${cleaned}`,
+    },
+    '4': {
+      default: `${cleaned}. Make the response thoughtful, nuanced, and distinctive rather than generic.`,
+      writing: `Write the following with a distinct voice, strong tone, and meaningful expression: ${cleaned}`,
+      brainstorming: `Generate original, non-obvious ideas for the following: ${cleaned}`,
+    },
+    '5': {
+      default: `${cleaned}. Go deeper than surface-level advice and include reasoning where useful.`,
+      analysis: `Analyze the following in a structured way. Explain causes, assumptions, and implications: ${cleaned}`,
+      explanation: `Explain the following clearly and logically, building understanding step by step: ${cleaned}`,
+      planning: `Create a plan for the following and explain why each step matters: ${cleaned}`,
+    },
+    '6': {
+      default: `${cleaned}. Make the response dependable, clear, and low in ambiguity.`,
+      planning: `Create a practical plan for the following, including likely risks and how to reduce them: ${cleaned}`,
+      analysis: `Analyze the following clearly, separating facts, interpretation, and uncertainty: ${cleaned}`,
+    },
+    '7': {
+      default: `${cleaned}. Explore strong options and useful possibilities while staying practical.`,
+      brainstorming: `Generate a diverse set of strong, high-value ideas for the following: ${cleaned}`,
+      planning: `Create a practical plan for the following, and include a few good alternative approaches if relevant: ${cleaned}`,
+    },
+    '8': {
+      default: `${cleaned}. Focus on what matters most and what should be done first.`,
+      analysis: `Analyze the following by identifying the core issue, the weak points, and the strongest move: ${cleaned}`,
+      planning: `Create a direct, no-fluff action plan for the following, with the most important steps first: ${cleaned}`,
+      writing: `Write the following clearly, strongly, and with purpose: ${cleaned}`,
+    },
+    '9': {
+      default: `${cleaned}. Keep the response balanced, simple, and easy to act on.`,
+      explanation: `Explain the following in a calm, step-by-step way that is easy to follow: ${cleaned}`,
+      planning: `Create a clear, manageable sequence of steps for the following: ${cleaned}`,
+    },
+  };
 
-  if (
-    text.includes('write') ||
-    text.includes('draft') ||
-    text.includes('email') ||
-    text.includes('subject line') ||
-    text.includes('linkedin') ||
-    text.includes('post') ||
-    text.includes('message') ||
-    text.includes('copy') ||
-    text.includes('headline')
-  ) {
-    return 'writing';
-  }
-
-  if (
-    text.includes('analyze') ||
-    text.includes('analysis') ||
-    text.includes('compare') ||
-    text.includes('evaluate') ||
-    text.includes('assess') ||
-    text.includes('diagnose') ||
-    text.includes('pros and cons') ||
-    text.includes('tradeoff')
-  ) {
-    return 'analysis';
-  }
-
-  if (
-    text.includes('brainstorm') ||
-    text.includes('ideas') ||
-    text.includes('creative') ||
-    text.includes('options') ||
-    text.includes('concepts') ||
-    text.includes('angles')
-  ) {
-    return 'brainstorming';
-  }
-
-  if (
-    text.includes('plan') ||
-    text.includes('roadmap') ||
-    text.includes('steps') ||
-    text.includes('strategy') ||
-    text.includes('how do i') ||
-    text.includes('how to') ||
-    text.includes('approach')
-  ) {
-    return 'planning';
-  }
-
-  if (
-    text.includes('explain') ||
-    text.includes('what is') ||
-    text.includes('help me understand') ||
-    text.includes('teach me') ||
-    text.includes('walk me through')
-  ) {
-    return 'explanation';
-  }
-
-  return 'general';
+  return map[profileId]?.[taskType] || map[profileId]?.default || cleaned;
 }
 
 function getTaskInstruction(taskType: TaskType): string {
   switch (taskType) {
     case 'writing':
-      return `This is a writing task. Produce polished language, not rough notes. Match the requested purpose and audience. If useful, provide a strong final version first, then optional alternatives.`;
+      return `Produce polished language that is ready to use. Match the purpose, audience, and tone. Give the strongest final version first, then alternatives only if useful.`;
 
     case 'analysis':
-      return `This is an analysis task. Break the issue into key factors, explain the reasoning clearly, and identify the most important takeaways. Include tradeoffs, risks, or assumptions where relevant.`;
+      return `Break the issue into its key parts. Show the reasoning clearly. Identify the main drivers, tradeoffs, assumptions, and most important conclusions.`;
 
     case 'brainstorming':
-      return `This is a brainstorming task. Generate multiple strong ideas, not minor variations of the same idea. Prioritize variety, originality, and practical usefulness. Group ideas when helpful.`;
+      return `Generate multiple strong ideas, not minor variations of the same one. Prioritize variety, originality, and practical usefulness. Group ideas when it helps.`;
 
     case 'planning':
-      return `This is a planning task. Create a practical, ordered approach. Prioritize the highest-leverage actions first. Make the result actionable and easy to execute.`;
+      return `Create a practical, ordered plan. Put the highest-leverage actions first. Make the result easy to execute.`;
 
     case 'explanation':
-      return `This is an explanation task. Explain clearly and in a way that builds understanding step by step. Use plain language first, then add depth where helpful.`;
+      return `Explain the topic clearly and step by step. Start simple, then add depth where helpful.`;
 
     default:
-      return `Treat this as a general problem-solving task. Clarify the objective, improve the wording, and make the response useful and well-structured.`;
+      return `Clarify the objective, strengthen the framing, and provide a practical, well-structured response.`;
   }
 }
 
-function getProfileInstruction(profileId: string): string {
-  const profileInstructionMap: Record<string, string> = {
-    '1': `Be precise, structured, and logically consistent. Prioritize correctness, clean reasoning, and clear organization. Avoid loose or fuzzy framing.`,
-
-    '2': `Keep the response human-centered, helpful, and considerate. Make the tone warm but still practical. Pay attention to how the message will land with people.`,
-
-    '3': `Keep the response efficient, outcome-focused, and practical. Lead with the strongest answer. Prioritize usefulness, speed, and clarity over nuance for its own sake.`,
-
-    '4': `Make the response thoughtful, nuanced, and expressive. Avoid generic language. Preserve tone, individuality, and depth where appropriate.`,
-
-    '5': `Go deeper than surface-level advice. Include reasoning, structure, assumptions, and why the answer works. Support the recommendation with substance.`,
-
-    '6': `Reduce ambiguity. Be clear, well-structured, and dependable. Include risk factors, caveats, or validation points where relevant so the answer feels trustworthy.`,
-
-    '7': `Keep the response engaging, possibility-oriented, and idea-rich. Offer multiple promising directions when useful, while still keeping the answer practical.`,
-
-    '8': `Be direct, decisive, and no-nonsense. Cut filler. Focus on what matters most, what actually works, and what should be done first.`,
-
-    '9': `Keep the response clear, calm, and balanced. Make it easy to follow. Avoid unnecessary intensity or overcomplication.`
+function getProfileStyleInstruction(profileId: string): string {
+  const map: Record<string, string> = {
+    '1': `Be precise, structured, and logically consistent. Prioritize correctness and clean reasoning.`,
+    '2': `Keep the response human-centered, helpful, and considerate. Pay attention to tone and how the message will land.`,
+    '3': `Be efficient, outcome-focused, and practical. Prioritize usefulness and speed.`,
+    '4': `Be thoughtful, nuanced, and expressive. Avoid flattening the response into something generic.`,
+    '5': `Go beyond surface-level advice. Include reasoning, structure, and why the answer works.`,
+    '6': `Reduce ambiguity. Be dependable, clear, and well-structured. Include relevant caveats or risks.`,
+    '7': `Keep the response engaging, possibility-oriented, and idea-rich while still useful.`,
+    '8': `Be direct, decisive, and no-nonsense. Cut filler and focus on what matters most.`,
+    '9': `Keep the response clear, calm, balanced, and easy to follow. Avoid unnecessary complexity.`,
   };
 
-  return profileInstructionMap[profileId] || '';
+  return map[profileId] || '';
 }
 
-function getProfileFormatInstruction(profileId: string, taskType: TaskType): string {
-  const formatMap: Record<string, Partial<Record<TaskType | 'default', string>>> = {
+function getProfilePatternInstruction(profileId: string, taskType: TaskType): string {
+  const map: Record<string, Partial<Record<TaskType | 'default', string>>> = {
     '1': {
       default: `Use a clean structure with labeled sections or ordered steps.`,
-      analysis: `Use labeled sections and a logical sequence. Make the reasoning easy to audit.`,
-      planning: `Use an ordered step-by-step plan with clear priorities.`,
+      analysis: `Use a logical breakdown with explicit reasoning.`,
+      planning: `Use a step-by-step plan with clear priorities and sequence.`,
+      writing: `Prefer organized, well-formed output over loose creative variation.`,
     },
     '2': {
-      default: `Keep the structure clear and approachable. Make the response easy to apply with people.`,
-      writing: `Optimize for tone, clarity, and audience response.`,
+      default: `Make the response approachable and easy to apply with people.`,
+      writing: `Optimize for warmth, clarity, helpfulness, and audience response.`,
+      explanation: `Explain in a supportive, accessible way.`,
     },
     '3': {
-      default: `Lead with the best answer first, then supporting points.`,
-      planning: `Use a short action plan with highest-impact actions first.`,
+      default: `Lead with the strongest answer first, then supporting points.`,
+      planning: `Give a short, high-impact action plan.`,
       writing: `Give the strongest final draft first. Keep it sharp and effective.`,
+      analysis: `Lead with the conclusion, then the evidence.`,
     },
     '4': {
-      default: `Preserve nuance and voice. Avoid flattening the response into something generic.`,
-      writing: `Make the wording distinctive, authentic, and well-shaped.`,
+      default: `Preserve voice, nuance, and originality.`,
+      writing: `Make the language distinctive, authentic, and well-shaped.`,
+      brainstorming: `Favor originality and fresh angles over obvious ideas.`,
     },
     '5': {
-      default: `Include underlying logic, assumptions, and explanation.`,
-      analysis: `Use a structured breakdown, with reasoning and implications.`,
+      default: `Include logic, assumptions, explanation, and useful depth.`,
+      analysis: `Use a structured breakdown with reasoning and implications.`,
       explanation: `Start with the core idea, then unpack the logic behind it.`,
+      planning: `Explain why the sequence makes sense, not just what to do.`,
     },
     '6': {
-      default: `Use a dependable structure with clear guidance and any relevant cautions.`,
-      planning: `Include key steps, likely risks, and how to reduce mistakes.`,
+      default: `Use a dependable structure with clear guidance and relevant cautions.`,
+      planning: `Include likely risks, failure points, and how to reduce them.`,
+      analysis: `Separate evidence, interpretation, and uncertainty clearly.`,
     },
     '7': {
-      default: `Offer multiple viable options when useful, but keep them distinct and meaningful.`,
+      default: `Offer multiple meaningful options when helpful.`,
       brainstorming: `Generate a diverse set of ideas and group them into useful categories.`,
+      planning: `Offer a practical path, plus a few good alternate approaches if relevant.`,
     },
     '8': {
-      default: `Be bluntly clear. Lead with the strongest recommendation.`,
+      default: `Lead with the strongest recommendation. Be bluntly clear.`,
       analysis: `Call out the core issue, weak points, and best move.`,
       planning: `Give a direct action sequence with no fluff.`,
+      writing: `Make it clear, strong, and purposeful.`,
     },
     '9': {
-      default: `Keep the answer simple, balanced, and easy to absorb.`,
+      default: `Keep the structure simple, balanced, and easy to absorb.`,
       explanation: `Walk through the answer in a calm, stepwise way.`,
+      planning: `Use a straightforward sequence that feels manageable.`,
     },
   };
 
-  return formatMap[profileId]?.[taskType] || formatMap[profileId]?.default || '';
+  return map[profileId]?.[taskType] || map[profileId]?.default || '';
 }
 
 function getLlmInstruction(llmId: string): string {
-  const llmInstructionMap: Record<string, string> = {
-    chatgpt: `Structure the response clearly. Use explicit headings or bullets when useful. Follow the instructions closely and keep the result practical.`,
-
-    claude: `Provide a thoughtful, well-reasoned response with strong clarity and nuance. Preserve context and explain your reasoning when helpful.`,
-
-    grok: `Keep the response direct, conversational, and energetic, but still organized enough to be easy to use.`,
-
-    gemini: `Organize the response clearly and ensure broad, useful coverage of the topic without drifting into filler.`
+  const map: Record<string, string> = {
+    chatgpt: `Use clear structure, explicit formatting, and practical wording.`,
+    claude: `Preserve context, nuance, and reasoning clarity.`,
+    grok: `Keep the tone direct and conversational, but still organized.`,
+    gemini: `Keep the response broad enough to be useful, but avoid filler.`,
   };
 
-  return llmInstructionMap[llmId] || '';
+  return map[llmId] || '';
 }
 
 function getQualityInstruction(taskType: TaskType): string {
-  const shared = `Be specific, not generic. Avoid filler. Make the result immediately usable.`;
-
   switch (taskType) {
     case 'writing':
-      return `${shared} Make the language polished and ready to use. If relevant, improve clarity, tone, and persuasion.`;
+      return `Make the language polished, specific, and ready to use. Improve clarity, tone, and effectiveness.`;
 
     case 'analysis':
-      return `${shared} Distinguish facts, reasoning, assumptions, and conclusions.`;
+      return `Be specific. Distinguish facts, reasoning, assumptions, and conclusions.`;
 
     case 'brainstorming':
-      return `${shared} Avoid repetitive ideas. Prefer fewer strong ideas over many weak ones.`;
+      return `Avoid repetitive ideas. Prefer a smaller number of strong ideas over many weak ones.`;
 
     case 'planning':
-      return `${shared} Prioritize sequence, execution, and leverage.`;
+      return `Make the plan actionable, prioritized, and practical.`;
 
     case 'explanation':
-      return `${shared} Favor clarity first, depth second.`;
+      return `Favor clarity first, depth second.`;
 
     default:
-      return shared;
+      return `Be specific, practical, and immediately useful. Avoid filler.`;
   }
 }
 
@@ -214,33 +199,30 @@ export function buildAlignedPrompt(
   const cleanInput = rawInput.trim();
   const taskType = detectTaskType(cleanInput);
 
+  const alignedTask = getProfileAlignedTask(cleanInput, profile.id, taskType);
   const taskInstruction = getTaskInstruction(taskType);
-  const profileInstruction = getProfileInstruction(profile.id);
-  const profileFormatInstruction = getProfileFormatInstruction(profile.id, taskType);
+  const profileStyleInstruction = getProfileStyleInstruction(profile.id);
+  const profilePatternInstruction = getProfilePatternInstruction(profile.id, taskType);
   const llmInstruction = getLlmInstruction(llm.id);
   const qualityInstruction = getQualityInstruction(taskType);
 
-  return `I want help with the following task:
-
-${cleanInput}
-
-Please respond in a way that is aligned to my communication style and optimized for this AI model.
+  return `${alignedTask}
 
 Task handling:
 ${taskInstruction}
 
-User alignment:
-${profileInstruction}
+User communication style:
+${profileStyleInstruction}
 
-Response structure:
-${profileFormatInstruction}
+Preferred response pattern:
+${profilePatternInstruction}
 
-Model alignment:
+Model-specific guidance:
 ${llmInstruction}
 
 Quality bar:
 ${qualityInstruction}
 
-Before answering, improve the framing of the task where needed so the final result is clearer, stronger, and more useful than the original request. Do not ask follow-up questions unless absolutely necessary.`
+Improve the framing where needed so the final result is clearer, stronger, and more useful than the original wording. Do not ask follow-up questions unless absolutely necessary.`
     .trim();
 }

@@ -4,25 +4,39 @@ import { ProfileConfig } from '../config/profiles';
 type StatusStripProps = {
   profile: ProfileConfig;
   llm: LlmConfig;
+  taskType?: string;
 };
 
-export function StatusStrip({ profile, llm }: StatusStripProps) {
+function formatTaskType(taskType?: string): string {
+  if (!taskType) return 'Not detected yet';
+
+  return taskType.charAt(0).toUpperCase() + taskType.slice(1);
+}
+
+export function StatusStrip({ profile, llm, taskType }: StatusStripProps) {
   return (
-    <div className="card status-strip">
-      <div>
+    <section className="status-strip">
+      <div className="card status-item">
         <span className="status-label">Your Profile</span>
-        <strong>
+        <span className="status-value">
           {profile.label} ({profile.id})
-        </strong>
+        </span>
       </div>
-      <div>
+
+      <div className="card status-item">
         <span className="status-label">Target AI</span>
-        <strong>{llm.label}</strong>
+        <span className="status-value">{llm.label}</span>
       </div>
-      <div>
+
+      <div className="card status-item">
         <span className="status-label">AI Style</span>
-        <strong>{llm.style}</strong>
+        <span className="status-value">{llm.style}</span>
       </div>
-    </div>
+
+      <div className="card status-item">
+        <span className="status-label">Task Type</span>
+        <span className="status-value">{formatTaskType(taskType)}</span>
+      </div>
+    </section>
   );
 }

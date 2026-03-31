@@ -6,6 +6,7 @@ import { llmConfigs, orderedLlms, type LlmId } from './config/llms';
 import { orderedProfiles, profileConfigs, type ProfileId } from './config/profiles';
 import { buildAlignedPrompt } from './utils/buildAlignedPrompt';
 import { getProfileFromUrl } from './utils/getProfileFromUrl';
+import { detectTaskType } from './utils/detectTaskType';
 import logo from './assets/hermanscience-logo.png';
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
   const [output, setOutput] = useState('');
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [taskType, setTaskType] = useState('');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -38,10 +40,15 @@ function App() {
     if (!question.trim()) {
       setError('Please enter a question or task first.');
       setOutput('');
+      setTaskType('');
       return;
     }
 
     setError('');
+
+    const detectedTaskType = detectTaskType(question);
+    setTaskType(detectedTaskType);
+
     setOutput(buildAlignedPrompt(question, activeProfile, activeLlm));
   };
 
@@ -60,11 +67,11 @@ function App() {
   return (
     <main className="app-shell">
       <section className="hero">
-          <img
-            src={logo}
-            alt="Herman Science"
-            className="brand-logo"
-          />
+        <img
+          src={logo}
+          alt="Herman Science"
+          className="brand-logo"
+        />
         <p className="subtitle">
           Turn your question into an AI-aligned prompt based on your profile and the target model.
         </p>
@@ -85,7 +92,7 @@ function App() {
         </div>
       )}
 
-      <StatusStrip profile={activeProfile} llm={activeLlm} />
+      <StatusStrip profile={activeProfile} llm={activeLlm} taskType={taskType} />
 
       <div className="grid-layout">
         <PromptInput

@@ -77,7 +77,7 @@ select {
 
 .status-strip {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: calc(16px * var(--ui-scale));
   margin-bottom: calc(20px * var(--ui-scale));
 }
